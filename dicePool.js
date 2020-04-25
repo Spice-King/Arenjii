@@ -1,9 +1,10 @@
+const RDC = require("./rdc")
 //+ TODO
     //+ Optimize Fate/Luck?
     //+ Ensure Versus test are correct?
 
 
-class diePool
+class DicePool
 {
   // Constructor
     constructor( )
@@ -36,7 +37,87 @@ class diePool
         this.successes = 0;            // the number of successes gained through rolls
         this.totalRolled = 0;          // how many dice ultimately end up being rolled (before explosions)
     }
-
+    /**
+     * 
+     * @returns {number}
+     */
+    /**
+     * Rolls the dice with the given roller
+     * @param {rollderFunc} roller - the die roller to use
+     */
+    roll(roller)
+    {
+        // roll astrology dice
+        for ( a = 0; a < this.astroDice; a++ )
+        {
+            let astRoll = roller();
+            this.astroResult += astRoll >= this.shade;
+            this.astroPool.push( astRoll );
+            
+            while( astRoll === 6 )
+            {
+                astRoll = roller();
+                this.astroResult += astRoll >= this.shade;
+                this.astroPool.push( astRoll );
+            }
+            
+            if ( astRoll === 1 )
+            {
+                astRoll = roller();
+                this.astroResult -= astRoll < this.shade;
+                this.astroPool.push( astRoll );
+            }
+        }
+        
+        // roll Independantly Open-Ended dice
+        for ( o = 0; o < this.openEndedDice; o++ )
+        {
+            let openRoll = roller();
+            
+            if ( openRoll >= this.shade ) 
+            {   this.successes++;   }
+            if ( openRoll === 6 ) 
+            {   o--;   }
+            
+            this.openEndedPool.push( openRoll );
+        }
+        
+        // roll helper dice
+        for ( h = 0; h < this.helperPool.length; h++ )
+        {
+            let helpRoll = [];
+            
+            for ( h2 = 0; h2 < this.helperPool[h].length; h2++ )
+            {
+                let r = roller();
+                this.successes += r >= this.shade;
+                helpRoll.push( r );
+                
+                while( this.isOpenEnded && r === 6 )
+                {
+                    r = roller();
+                    this.successes += r >= this.shade;
+                    helpRoll.push( r );
+                }
+            }
+            
+            this.helperPool[h] = helpRoll;
+        }
+        
+        // Roll Exponent dice
+        for ( d = 0; d < Number( this.exponent ) + Number( this.arthaDice ); d++ )
+        {
+            let r = roller();
+            
+            if ( r >= this.shade ) 
+            {   this.successes++;   }
+            if ( this.isOpenEnded && r === 6 ) 
+            {   d--;   }
+            
+            this.basePool.push( r );
+        }
+        this.totalRolled = this.exponent + this.arthaDice + this.nonArtha + +this.openEndedDice + this.astroDice + this.helperDice;
+    }
   // DiePool.printPool()
     printPool()
     {
@@ -193,4 +274,4 @@ function diceSugar( pool, shade, open )
     return msg;
 }
 
-module.exports = diePool
+module.exports = DicePool

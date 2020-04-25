@@ -7,7 +7,8 @@
   },
   "license": "ISC",
   "scripts": {
-    "start": "node bot.js"
+    "start": "node bot.js",
+    "test": "mocha"
   },
   "author": "Saelvarath",
   "repository": {
@@ -20,5 +21,8 @@
     "Discord",
     "Dice Roller",
     "KSBD"
-  ]
+  ],
+  "devDependencies": {
+    "mocha": "^7.1.1"
+  }
 }
